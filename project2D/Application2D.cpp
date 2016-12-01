@@ -65,9 +65,18 @@ void Application2D::update(float deltaTime) {
 	// exit the application
 	if (input->isKeyDown(aie::INPUT_KEY_ESCAPE))
 		quit();
+
+	if (input->wasMouseButtonPressed(aie::INPUT_MOUSE_BUTTON_RIGHT))
+	{
+		isrightmousepressed = true;
+		mousex = input->getMouseX();
+		mousey = input->getMouseY();
+	}
 }
 
 void Application2D::draw() {
+
+	aie::Input* input = aie::Input::getInstance();
 
 	// wipe the screen to the background colour
 	clearScreen();
@@ -77,6 +86,12 @@ void Application2D::draw() {
 
 	// begin drawing sprites
 	m_2dRenderer->begin();
+
+	// draws a spining plane that follows mouse position
+	if (isrightmousepressed)
+	{
+		m_2dRenderer->drawSprite(m_shipTexture, mousex, mousey, 0, 0, m_timer * 4, 1);
+	}
 
 	// demonstrate animation
 	m_2dRenderer->setUVRect(int(m_timer) % 8 / 8.0f, 0, 1.f / 8, 1.f / 8);

@@ -16,6 +16,10 @@ public:
 	virtual void update(float deltaTime);
 	virtual void draw();
 
+	bool isrightmousepressed = false;
+
+	int mousex, mousey = 0;
+
 protected:
 
 	aie::Renderer2D*	m_2dRenderer;
