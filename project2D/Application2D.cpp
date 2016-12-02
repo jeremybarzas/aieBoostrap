@@ -1,17 +1,19 @@
 #include "Application2D.h"
-#include "Texture.h"
-#include "Font.h"
-#include "Input.h"
 
-Application2D::Application2D() {
-
+Application2D::Application2D()
+{
+	
 }
 
 Application2D::~Application2D() {
 
 }
 
-bool Application2D::startup() {
+bool Application2D::startup()
+{
+	m_input = aie::Input::getInstance();
+	
+	m_player = new Player();
 	
 	m_2dRenderer = new aie::Renderer2D();
 
@@ -21,63 +23,82 @@ bool Application2D::startup() {
 	m_font = new aie::Font("./font/consolas.ttf", 32);
 
 	m_audio = new aie::Audio("./audio/powerup.wav");
-
+	
+	lastclick = Vector2D(500, 500);
+	
 	m_cameraX = 0;
 	m_cameraY = 0;
 	m_timer = 0;
 
+	m_resX = 1920;
+	m_resY = 1080;
+
 	return true;
 }
 
-void Application2D::shutdown() {
-	
+void Application2D::shutdown() 
+{
 	delete m_audio;
 	delete m_font;
 	delete m_texture;
 	delete m_shipTexture;
 	delete m_2dRenderer;
+
+	delete m_player;
 }
 
-void Application2D::update(float deltaTime) {
-
+void Application2D::update(float deltaTime)
+{
 	m_timer += deltaTime;
 
-	// input example
-	aie::Input* input = aie::Input::getInstance();
-
 	// use arrow keys to move camera
-	if (input->isKeyDown(aie::INPUT_KEY_UP))
-		m_cameraY += 500.0f * deltaTime;
+	if (m_input->isKeyDown(aie::INPUT_KEY_W))
+		m_cameraY += 300.0f * deltaTime;
 
-	if (input->isKeyDown(aie::INPUT_KEY_DOWN))
-		m_cameraY -= 500.0f * deltaTime;
+	if (m_input->isKeyDown(aie::INPUT_KEY_S))
+		m_cameraY -= 300.0f * deltaTime;
 
-	if (input->isKeyDown(aie::INPUT_KEY_LEFT))
-		m_cameraX -= 500.0f * deltaTime;
+	if (m_input->isKeyDown(aie::INPUT_KEY_A))
+		m_cameraX -= 300.0f * deltaTime;
 
-	if (input->isKeyDown(aie::INPUT_KEY_RIGHT))
-		m_cameraX += 500.0f * deltaTime;
+	if (m_input->isKeyDown(aie::INPUT_KEY_D))
+		m_cameraX += 300.0f * deltaTime;
+
+	// use mouse clicks to move character
+	if (m_input->wasMouseButtonPressed(aie::INPUT_MOUSE_BUTTON_LEFT))
+	{
+		lastclick.x = m_input->getMouseX();
+		lastclick.y = m_input->getMouseY();
+	}
+
+	if (m_player->getY() > this->getY())
+	{
+		m_player->moveDown();
+	}
+	if (m_player->getY() < this->getY())
+	{
+		m_player->moveUp();
+	}
+	if (m_player->getX() > this->getX())
+	{
+		m_player->moveLeft();
+	}
+	if (m_player->getX() < this->getX())
+	{
+		m_player->moveRight();
+	}
 
 	// example of audio
-	if (input->wasKeyPressed(aie::INPUT_KEY_SPACE))
+	if (m_input->wasKeyPressed(aie::INPUT_KEY_SPACE))
 		m_audio->play();
 
 	// exit the application
-	if (input->isKeyDown(aie::INPUT_KEY_ESCAPE))
+	if (m_input->isKeyDown(aie::INPUT_KEY_ESCAPE))
 		quit();
-
-	if (input->wasMouseButtonPressed(aie::INPUT_MOUSE_BUTTON_RIGHT))
-	{
-		isrightmousepressed = true;
-		mousex = input->getMouseX();
-		mousey = input->getMouseY();
-	}
 }
 
-void Application2D::draw() {
-
-	aie::Input* input = aie::Input::getInstance();
-
+void Application2D::draw() 
+{
 	// wipe the screen to the background colour
 	clearScreen();
 
@@ -86,12 +107,11 @@ void Application2D::draw() {
 
 	// begin drawing sprites
 	m_2dRenderer->begin();
+	
 
-	// draws a spining plane that follows mouse position
-	if (isrightmousepressed)
-	{
-		m_2dRenderer->drawSprite(m_shipTexture, mousex, mousey, 0, 0, m_timer * 4, 1);
-	}
+	m_2dRenderer->setUVRect(0, 0, 1, 1);
+	m_2dRenderer->drawSprite(m_shipTexture, m_player->getX(), m_player->getY(), 0, 0, 0, 1);
+
 
 	// demonstrate animation
 	m_2dRenderer->setUVRect(int(m_timer) % 8 / 8.0f, 0, 1.f / 8, 1.f / 8);
@@ -101,8 +121,17 @@ void Application2D::draw() {
 	m_2dRenderer->setUVRect(0,0,1,1);
 	m_2dRenderer->drawSprite(m_shipTexture, 600, 400, 0, 0, m_timer, 1);
 
-	// draw a thin line
-	m_2dRenderer->drawLine(300, 300, 600, 400, 2, 1);
+	// draws a bottom line
+	m_2dRenderer->drawLine(0, 0, this->m_resX, 0, 10, 1);
+	
+	// draws a top line
+	m_2dRenderer->drawLine(0, this->m_resY, this->m_resX, this->m_resY, 10, 1);
+	
+	// draws a right line
+	m_2dRenderer->drawLine(this->m_resX, 0, this->m_resX, this->m_resY, 10, 1);
+
+	// draws a left line
+	m_2dRenderer->drawLine(0, 0, 0, this->m_resY, 10, 1);
 
 	// draw a moving purple circle
 	m_2dRenderer->setRenderColour(1, 0, 1, 1);
