@@ -71,6 +71,16 @@ void Application2D::update(float deltaTime)
 		lastclick.y = m_input->getMouseY();
 	}
 
+	if (!(m_player->getPos() == lastclick))
+	{
+		float m_length = sqrt(((m_player->getX() - lastclick.getX()) * (m_player->getX() - lastclick.getX())) + ((m_player->getY() - lastclick.getY()) * (m_player->getY() - lastclick.getY())));
+		
+		m_player->setPos(m_player->Move(m_player->getPos(), lastclick, m_length));
+	}
+
+	/*
+	m_player->Move(lastclick);
+	
 	if (m_player->getY() > this->getY())
 	{
 		m_player->moveDown();
@@ -86,7 +96,7 @@ void Application2D::update(float deltaTime)
 	if (m_player->getX() < this->getX())
 	{
 		m_player->moveRight();
-	}
+	}*/
 
 	// example of audio
 	if (m_input->wasKeyPressed(aie::INPUT_KEY_SPACE))
