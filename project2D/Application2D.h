@@ -41,6 +41,16 @@ public:
 		position = newpos;
 	}
 
+	Vector2D heading(Vector2D force)
+	{
+		Vector2D newVelocity = Vector2D(0, 1);
+
+		newVelocity = newVelocity + force;
+
+		return newVelocity;
+	}
+
+
 /*
 	// Imprecise method which does not guarantee v = v1 when t = 1, due to floating-point arithmetic error.
 	  
@@ -58,6 +68,7 @@ public:
 		return (1-t)*v0 + t*v1;
 	}
 */
+
 	Vector2D Move(Vector2D start, Vector2D end, float p)
 	{
 		Vector2D newpos = start;
