@@ -3,7 +3,7 @@
 int main() {
 	
 	auto app = new Application2D();
-	app->run("AIE", 1920, 1080, false);
+	app->run("AIE", SCREEN_WIDTH, SCREEN_HEIGHT, false);
 	delete app;
 
 	return 0;

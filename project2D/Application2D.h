@@ -6,149 +6,115 @@
 #include "Texture.h"
 #include "Font.h"
 #include "Input.h"
-#include "MathLibrary.h"
+
+#include "StaticMathLibraryx86.h"
+#include <iostream>
+
+using std::cout;
+
+
+// macros for screen window size
+#define SCREEN_WIDTH 1280
+#define SCREEN_HEIGHT 720
 
 class Player
 {
 private:
+	// Vector2D to store players positon
 	Vector2D position;
 
 public:
-	Player() 
+	// Default constructor for the Player class
+	// Sets player's start position
+	Player()
 	{
-		position = Vector2D(500, 500);
+		position = Vector2D(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
 	};
 
+	// deconstructor for the Player class
 	~Player() {};
 
+	// gets x position
 	float getX()
 	{
 		return position.getX();
 	}
 
+	// gets y position
 	float getY()
 	{
 		return position.getY();
 	}
 
-	Vector2D getPos()
+	// sets x position
+	void setX(float x)
 	{
-		return position;
+		position.setX(x);
 	}
 
-	void setPos(Vector2D newpos)
+	// sets y position
+	void setY(float y)
 	{
-		position = newpos;
+		position.setY(y);
 	}
 
-	Vector2D heading(Vector2D force)
+	// moves player based on mouse position on click
+	void MouseMove(Vector2D lastclick)
 	{
-		Vector2D newVelocity = Vector2D(0, 1);
-
-		newVelocity = newVelocity + force;
-
-		return newVelocity;
-	}
-
-
-/*
-	// Imprecise method which does not guarantee v = v1 when t = 1, due to floating-point arithmetic error.
-	  
-	// This form may be used when the hardware has a native Fused Multiply-Add instruction.
-	
-	float lerp(float v0, float v1, float t)
-	{
-		return v0 + t*(v1-v0);
-	}
-
-	// Precise method which guarantees v = v1 when t = 1.
-	
-	float lerp(float v0, float v1, float t)
-	{
-		return (1-t)*v0 + t*v1;
-	}
-*/
-
-	Vector2D Move(Vector2D start, Vector2D end, float p)
-	{
-		Vector2D newpos = start;
-		
-		Vector2D step1 = start - end;
-
-		Vector2D step2 = step1 * p;
-
-		newpos = newpos + step2;
-
-		return newpos;
-	}
-
-	void Move(Vector2D lastclick)
-	{
-		float Xdif = position.x - lastclick.getX();
-		float Ydif = position.y - lastclick.getY();
-
-		if (Xdif < 0)
+		// moves player up 1 unit if it's y position is lower than last click's y position
+		if (position.getY() < lastclick.getY())
 		{
-			Xdif *= -1;
-		}
-		if (Ydif < 0)
-		{
-			Ydif *= -1;
+			position.setY(position.getY() + 1);
 		}
 
-		float rocX;
-		float rocY;
-
-		if (Xdif < Ydif)
+		// moves player down 1 unit if it's y position is higher than last click's y position
+		if (position.getY() > lastclick.getY())
 		{
-			rocX = 1;
-			rocY = (Ydif / Xdif);
-		}
-		if (Xdif > Ydif)
-		{
-			rocX = (Xdif / Ydif);
-			rocY = 1;
+			position.setY(getY() - 1);
 		}
 
-		// move x
-		if (this->getX() < lastclick.getX())
+		// moves player right 1 unit if it's x position is lower than last click's x position
+		if (position.getX() < lastclick.getX())
 		{
-			position.x += rocX;
-		}
-		if (this->getX() > lastclick.getX())
-		{
-			position.x -= rocX;
+			position.setX(getX() + 1);
 		}
 
-		// move y
-		if (this->getY() < lastclick.getY())
+		// moves player left 1 unit if it's x position is higher than last click's x position
+		if (position.getX() > lastclick.getX())
 		{
-			position.y += rocY;
+			position.setX(getX() - 1);
 		}
-		if (this->getY() > lastclick.getY())
-		{
-			position.y -= rocY;
-		}		
 	}
 
-	void moveUp()
+	void KeyboardMove(aie::Input *input, float deltaTime)
 	{
-		position.y += 1;
-	}
+		// move up
+		if (input->isKeyDown(aie::INPUT_KEY_W))
+			position.setY(position.getY() + (300.0f * deltaTime));
 
-	void moveDown()
-	{
-		position.y -= 1;
-	}
+		if (position.getY() > (SCREEN_HEIGHT - 45))
+			position.setY((SCREEN_HEIGHT - 45));
 
-	void moveRight()
-	{
-		position.x += 1;
-	}
+		// move down
+		if (input->isKeyDown(aie::INPUT_KEY_S))
+			position.setY(position.getY() - (300.0f * deltaTime));
 
-	void moveLeft ()
-	{
-		position.x -= 1;
+		if (position.getY() < 45)
+			position.setY(45);
+
+		// move left
+		if (input->isKeyDown(aie::INPUT_KEY_A))
+			position.setX(position.getX() - (300.0f * deltaTime));
+
+		if (position.getX() < 45)
+			position.setX(45);
+
+		// move right
+		if (input->isKeyDown(aie::INPUT_KEY_D))
+			position.setX(position.getX() + (300.0f * deltaTime));
+
+		if (position.getX() > (SCREEN_WIDTH - 45))
+			position.setX((SCREEN_WIDTH - 45));
 	}
 };
 
@@ -162,12 +128,11 @@ protected:
 	aie::Audio*			m_audio;
 	aie::Input*			m_input;
 
-	Player*				m_player;
+private:
+	Player*				m_player1;
+	Player*				m_player2;
 
 	Vector2D			lastclick;
-
-	float m_cameraX, m_cameraY;
-	float m_timer;
 
 public:
 	Application2D();
@@ -179,15 +144,39 @@ public:
 	virtual void update(float deltaTime);
 	virtual void draw();
 
-	float m_resX, m_resY;
+	float m_cameraX, m_cameraY;
+	float m_timer;
 
-	float getX()
+	// stores location of mouse cursor on click
+	void SetMousePos()
 	{
-		return lastclick.getX();
-	}
+		if (m_input->wasMouseButtonPressed(aie::INPUT_MOUSE_BUTTON_LEFT))
+		{
+			if (m_input->getMouseX() > SCREEN_WIDTH)
+			{
+				lastclick.setX(SCREEN_WIDTH);
+			}
 
-	float getY()
-	{
-		return lastclick.getY();
+			if (m_input->getMouseX() < 0)
+			{
+				lastclick.setX(0);
+			}
+
+			if (m_input->getMouseY() > SCREEN_HEIGHT)
+			{
+				lastclick.setY(SCREEN_HEIGHT);
+			}
+
+			if (m_input->getMouseY() < 0)
+			{
+				lastclick.setY(0);
+			}
+
+			else
+			{
+				lastclick.setX(m_input->getMouseX());
+				lastclick.setY(m_input->getMouseY());
+			}
+		}
 	}
 };
